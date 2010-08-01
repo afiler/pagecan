@@ -1,0 +1,34 @@
+#!/usr/bin/ruby
+require 'rubygems'
+require 'base64'
+require 'nokogiri'
+require 'open-uri'
+
+url = ARGV[0]
+file_out = (!ARGV[1] or ARGV[1] == '-' or ARGV[1].empty?) ? $stdout : ARGV[1]
+base_url = URI.parse url
+base_dirname = File.dirname(base_url.path)
+doc = Nokogiri::HTML(open(url), url)
+
+urls = {}
+
+doc.xpath('//*[@src]').each do |node|
+	begin
+		src_txt = node['src']
+		if !urls[src_txt]
+			src = URI.parse src_txt
+			dirname = File.dirname(src.path).empty? ? base_dirname : File.dirname(src.path)
+			path = File.basename(src.path).empty? ? dirname : dirname + '/' + File.basename(src.path)
+			src = base_url.dup if not src.host
+			src.path = path
+
+			$stderr.puts "Opening #{src.to_s}"
+			f = open src.to_s
+			urls[src_txt] = "data:#{f.content_type};base64,#{Base64.encode64 f.read}"
+		end
+		node['src'] = urls[src_txt]
+	rescue OpenURI::HTTPError
+	end
+end
+
+open(file_out, 'w') << doc
