@@ -1,0 +1,9 @@
+pagecan will take an URL of an HTML document, grab all resources referenced by
+"src", and bundle the page and encoded resources into a single file, through
+the use of the data URI scheme. pagecan is written in Ruby and uses the Nokogiri parser.
+
+Usage: pagecan url [file | -]
+
+If '-' or no file is given, output is sent to stdout. pagecan has been tested
+only with HTTP URLs, but as it uses Ruby open-uri, other URIs and local files
+may work.

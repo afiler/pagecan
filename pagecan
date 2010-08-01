@@ -1,8 +1,12 @@
 #!/usr/bin/ruby
-require 'rubygems'
 require 'base64'
-require 'nokogiri'
 require 'open-uri'
+begin
+	require 'nokogiri'
+rescue LoadError
+	require 'rubygems'
+	require 'nokogiri'
+end
 
 url = ARGV[0]
 file_out = (!ARGV[1] or ARGV[1] == '-' or ARGV[1].empty?) ? $stdout : ARGV[1]
@@ -27,7 +31,8 @@ doc.xpath('//*[@src]').each do |node|
 			urls[src_txt] = "data:#{f.content_type};base64,#{Base64.encode64 f.read}"
 		end
 		node['src'] = urls[src_txt]
-	rescue OpenURI::HTTPError
+	rescue OpenURI::HTTPError => e
+		$stderr.puts "HTTP error #{e} opening #{src.to_s}"
 	end
 end
 
